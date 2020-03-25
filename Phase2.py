@@ -54,3 +54,6 @@ for c in companies:
 
 # print(df_dict['df_0'].head(2))
 print(df_dict['df_1'].head(2))
+
+# I need to concatenate all data frames into one an create a table in database
+# for this df. Look into Multiprocessing!

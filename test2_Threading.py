@@ -3,8 +3,8 @@ import pandas as pd
 import concurrent.futures
 import time
 
-# Test to see go around the 5 calls per minute constrain in API
 
+# Test to create data frame and push it to db
 start = time.perf_counter()
 
 key = 'B74JHRMS7KY09FBB'
@@ -15,6 +15,7 @@ companies = ['MMM', 'ABT', 'ABBV', 'ACN', 'ATVI', 'AMD', 'AES', 'AFL']
 df_dict = dict(('df_' + str(x), pd.DataFrame()) for x in range(len(companies)))
 
 chunk = [companies[i:i + 5] for i in range(0, len(companies), 5)]
+
 
 def download_data(company):
     data, meta = ts.get_monthly(symbol=company)
