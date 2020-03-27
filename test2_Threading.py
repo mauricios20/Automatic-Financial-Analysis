@@ -23,9 +23,10 @@ def download_data(company):
         n = companies.index(meta['2. Symbol'])
         df_dict['df_'+str(n)] = df_dict['df_'+str(n)].append(data)
         df_dict['df_'+str(n)]['Symbol'] = meta['2. Symbol']
+        # df_to_db('s&p500', 'test2', df_dict['df_'+str(n)], 'append')
     else:
         print(f'Company {company} not on API')
-    return f'Done Dowloading...{company}'
+    return f'Done Dowloading and Appending...{company} to database'
 
 
 # Works perfectly, but it needs to end immediately after loops for the last
