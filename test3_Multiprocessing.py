@@ -27,7 +27,8 @@ def download_data(company):
 key = 'B74JHRMS7KY09FBB'
 ts = TimeSeries(key,  output_format='pandas', indexing_type='date')
 
-companies = ['IDXX', 'ILMN', 'INCY', 'ISRG', 'IQV']
+companies = ['HRL', 'KR', 'LW', 'MKC', 'TAP', 'MDLZ',
+             'MNST', 'PEP', 'PM', 'PG', 'SYY', 'TSN', 'WMT', 'WBA']
 # 'AMT', 'AIV', 'AVB', 'BXP'
 # Creates a dic of dataframe atomatically from lists of companies
 df_dict = dict(('df_' + str(x), pd.DataFrame()) for x in range(len(companies)))
@@ -37,7 +38,7 @@ chunk = [companies[i:i + 5] for i in range(0, len(companies), 5)]
 db = 's&p500'
 engine = create_engine('mysql+pymysql://mausolorio:ducinALTUM7!@localhost/'
                        + db)
-tbname = 'test1'
+tbname = 'consumerstaples'
 action = 'append'
 
 for c in chunk:
@@ -47,3 +48,4 @@ for c in chunk:
         for result in results:
             print(result)
     print('Waiting 1min for API connection to restore')
+    time.sleep(61)

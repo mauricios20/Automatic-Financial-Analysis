@@ -1,3 +1,4 @@
+""" Phase 2: Get Historical stock prices monthly from 2000 to 2020"""
 # Phase 2 will connect to existing DB to extract SYM for API stock price.
 # Install mysql-connector-python 8.0.19
 # pip install dnspython
@@ -35,7 +36,7 @@ def convertTuple(tup):
 
 
 def df_to_db(df):
-    df.to_sql(tbname, con=engine, if_exists=action, index=False)
+    df.to_sql(tbname, con=engine, if_exists=action, index=True)
 
 
 def download_data(company):
@@ -49,10 +50,23 @@ def download_data(company):
         print(f'Company {company} not on API')
     return f'Dtf of {company} downloaded & {action}ed to {db} TABLE: {tbname}'
 
+# Sectors list:
+# Industrials [DONE]
+# Health Care [DONE]
+# Information Technology [DONE]
+# Communication Services [DONE]
+# Consumer Discretionary [DONE]
+# Utilities [DONE]
+# Financials [DONE]
+# Materials [DONE]
+# RealEstate [DONE]
+# Consumer Staples [D]
+# Energy [DONE]
+
 
 # Get the list of companies that belong to the specific sector of interest
 create_conn('s&p500')
-sql_Query = "SELECT Symbol FROM info WHERE Sector = 'Real Estate'"
+sql_Query = "SELECT Symbol FROM info WHERE Sector = 'Consumer Staples'"
 cursor.execute(sql_Query)
 records = cursor.fetchall()
 print("Total number of rows in mydb is: ", cursor.rowcount)
@@ -77,7 +91,7 @@ engine = create_engine('mysql+pymysql://mausolorio:ducinALTUM7!@localhost/'
                        + db)
 # Create Table name and acction to take
 
-tbname = 'realestate'
+tbname = 'consumerstaples'
 action = 'append'
 for c in chunk:
     print(f'Reading companies {c}')
