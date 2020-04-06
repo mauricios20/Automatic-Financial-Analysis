@@ -3,17 +3,17 @@ from sqlalchemy import create_engine
 import pandas as pd
 from bokeh.io import output_file, show
 from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource
 from bokeh.palettes import turbo
-import concurrent.futures
+
+# import concurrent.futures
 
 call = 'mysql+mysqlconnector://mausolorio:ducinALTUM7!@localhost/s&p500'
 engine = create_engine(call)
 sql_querry = 'SELECT * FROM materials'
 data = pd.read_sql(sql_querry, engine)
-
-# Create a ColumnDataSource from df: source
-source = ColumnDataSource(data)
+data.rename(columns={"1. open": "open", "2. high": "high",
+                     "3. low": "low", "4. close": "close",
+                     "5. volume": "volume"}, inplace=True)
 
 # Create a figure with x_axis_type="datetime":
 p = figure(x_axis_type='datetime', x_axis_label='Date',
@@ -21,12 +21,12 @@ p = figure(x_axis_type='datetime', x_axis_label='Date',
            sizing_mode='stretch_both', title='Sector: Materials')
 
 # Make a list of the unique values from the symbol column: company_list
-company_list = data.Symbol.unique().tolist()
-n = len(company_list)
+# company_list = data.Symbol.unique().tolist()
+# n = len(company_list)
 
 # For testing only
-# company_list = ['AMCR', 'APD', 'AVY', 'ALB', 'BLL', 'CF']
-# n = len(company_list)
+company_list = ['AMCR', 'APD', 'AVY', 'ALB', 'BLL', 'CF']
+n = len(company_list)
 
 
 # Plot date along the x axis and price along the y axis
@@ -34,10 +34,10 @@ n = len(company_list)
 
 def draw_plot(name, color):
     p.line(data['date'][data.Symbol == name],
-           data['1. open'][data.Symbol == name],
+           data['open'][data.Symbol == name],
            color=color, legend_label=name)
     p.circle(data['date'][data.Symbol == name],
-             data['1. open'][data.Symbol == name],
+             data['open'][data.Symbol == name],
              color=color, legend_label=name)
     # The location of the legend labels is controlled by the location property
     p.legend.location = "top_left"
@@ -46,7 +46,6 @@ def draw_plot(name, color):
     p.legend.title_text_font_style = "bold"
     p.legend.title_text_font_size = "15pt"
     return p
-
 
 # with concurrent.futures.ThreadPoolExecutor() as executor:
 #     args = ((name, color) for name, color in zip(company_list, turbo(n)))
