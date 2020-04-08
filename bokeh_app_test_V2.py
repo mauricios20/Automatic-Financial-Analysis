@@ -5,7 +5,7 @@ from functools import lru_cache
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
 from bokeh.models import ColumnDataSource
-from bokeh.models import Select, HoverTool, DateRangeSlider
+from bokeh.models import Select, HoverTool, DateRangeSlider, BoxAnnotation
 from bokeh.plotting import figure
 from bokeh.palettes import turbo
 
@@ -44,6 +44,9 @@ ticker = Select(value='AMCR', options=company_list, title="Company")
 range_slider = DateRangeSlider(start=startdate, end=enddate,
                                value=(startdate, enddate), step=1,
                                title='Date Range')
+# Box selection
+box = BoxAnnotation(fill_alpha=0.5, line_alpha=0.5,
+                    level='underlay', left=startdate, right=enddate)
 
 # set up plots Main Figure
 source = ColumnDataSource(data=dict(date=[], open=[],
@@ -52,7 +55,8 @@ source = ColumnDataSource(data=dict(date=[], open=[],
 
 p = figure(x_axis_type='datetime', x_axis_label='Date',
            y_axis_label='US Dollars', tools='pan,wheel_zoom,box_zoom,reset',
-           sizing_mode='scale_width', title='Sector: Materials')
+           sizing_mode='scale_width', title='Sector: Materials',
+           x_range=(startdate, enddate))
 
 p.line('date', 'open', color='black', legend_field='Symbol', source=source)
 p.circle('date', 'open', color='color', legend_field='Symbol', source=source)
@@ -72,6 +76,7 @@ p.add_tools(hover)
 p2 = figure(plot_height=100, sizing_mode='scale_width',
             x_axis_type='datetime', toolbar_location=None, active_drag=None)
 p2.vbar(x='date', top='volume', color='color', source=source)
+p2.add_layout(box)
 
 # set up callbacks
 
@@ -79,6 +84,16 @@ p2.vbar(x='date', top='volume', color='color', source=source)
 def ticker_change(attrname, old, new):
     ticker.options = company_list
     update()
+
+
+def update_range(attr, old, new):
+    box.left = new[0]
+    box.right = new[1]
+    p.x_range.start = new[0]
+    p.x_range.end = new[1]
+
+
+range_slider.on_change('value', update_range)
 
 
 def update(selected=None):
@@ -112,5 +127,5 @@ update()
 curdoc().add_root(layout)
 curdoc().title = "Stocks"
 
-# bokeh serve --show C:\Users\mauri\github\Automatic-
-# Financial-Analysis\bokeh_app_test.py
+# bokeh serve --show C:\Users\mauri\
+# github\Automatic-Financial-Analysis\bokeh_app_test_V2.py

@@ -3,9 +3,9 @@ from sqlalchemy import create_engine
 import pandas as pd
 from functools import lru_cache
 from bokeh.io import curdoc
-from bokeh.layouts import column, row
+from bokeh.layouts import column, row, gridplot
 from bokeh.models import ColumnDataSource
-from bokeh.models import Select, HoverTool, DateRangeSlider
+from bokeh.models import Select, HoverTool, DateRangeSlider, BoxAnnotation
 from bokeh.plotting import figure
 from bokeh.palettes import turbo
 
@@ -40,22 +40,45 @@ def get_data(company):
 
 
 # set up widgets widgets
-ticker = Select(value='AMCR', options=company_list, title="Company")
+ticker = Select(value='AMCR', options=company_list, title="Company:")
 range_slider = DateRangeSlider(start=startdate, end=enddate,
                                value=(startdate, enddate), step=1,
                                title='Date Range')
+
+# Box selection
+box = BoxAnnotation(fill_alpha=0.5, line_alpha=0.5,
+                    level='underlay', left=startdate, right=enddate)
 
 # set up plots Main Figure
 source = ColumnDataSource(data=dict(date=[], open=[],
                                     high=[], low=[], close=[],
                                     volume=[], Symbol=[], color=[]))
-
+TOOLS = "pan,wheel_zoom,box_zoom,reset, box_select"
 p = figure(x_axis_type='datetime', x_axis_label='Date',
-           y_axis_label='US Dollars', tools='pan,wheel_zoom,box_zoom,reset',
-           sizing_mode='scale_width', title='Sector: Materials')
+           y_axis_label='US Dollars', tools=TOOLS,
+           sizing_mode='scale_width', title='Sector: Materials',
+           x_range=(startdate, enddate))
 
-p.line('date', 'open', color='black', legend_field='Symbol', source=source)
-p.circle('date', 'open', color='color', legend_field='Symbol', source=source)
+# Open Line
+p.line('date', 'open', color='blue', legend_label='Open', source=source)
+p.circle('date', 'open', color='#29788E', legend_label='Open', source=source)
+
+# Close Line
+p.line('date', 'close', color='orange', legend_label='Close', source=source)
+p.circle_x('date', 'close', color='#FDE724',
+           legend_label='Close', source=source)
+
+# High Line
+p.line('date', 'high', color='#a1dab4',
+       line_dash=[4, 4], legend_label='High', source=source)
+p.triangle('date', 'high', color='#35B778',
+           legend_label='High', source=source)
+
+# Low Line
+p.line('date', 'low', color='black',
+       line_dash=[4, 4], legend_label='Low', source=source)
+p.inverted_triangle('date', 'low', color="red",
+                    legend_label='Low', source=source)
 
 p.legend.location = "top_left"
 p.legend.click_policy = "hide"
@@ -63,15 +86,16 @@ p.legend.title = 'Ticker'
 p.legend.title_text_font_style = "bold"
 p.legend.title_text_font_size = "15pt"
 # Create a HoverTool: hover
-hover = HoverTool(tooltips=[('Price', '@open')])
+hover = HoverTool(tooltips=[('Price', '$y')])
 
 # Add the HoverTool to the plot
 p.add_tools(hover)
 
 # Second FIgure with Volumes
 p2 = figure(plot_height=100, sizing_mode='scale_width',
-            x_axis_type='datetime', toolbar_location=None, active_drag=None)
+            x_axis_type='datetime', tools=TOOLS, active_drag=None)
 p2.vbar(x='date', top='volume', color='color', source=source)
+p2.add_layout(box)
 
 # set up callbacks
 
@@ -79,6 +103,16 @@ p2.vbar(x='date', top='volume', color='color', source=source)
 def ticker_change(attrname, old, new):
     ticker.options = company_list
     update()
+
+
+def update_range(attr, old, new):
+    box.left = new[0]
+    box.right = new[1]
+    p.x_range.start = new[0]
+    p.x_range.end = new[1]
+
+
+range_slider.on_change('value', update_range)
 
 
 def update(selected=None):
@@ -103,8 +137,9 @@ def selection_change(attrname, old, new):
 source.selected.on_change('indices', selection_change)
 
 # set up layout
-widgets = row(ticker)
-layout = column(widgets, p, p2, range_slider, sizing_mode="stretch_width")
+widgets = column(ticker)
+grid = gridplot([p, p2], ncols=1, toolbar_location='right')
+layout = column(widgets, grid, range_slider, sizing_mode="stretch_width")
 
 # initialize
 update()
@@ -112,5 +147,4 @@ update()
 curdoc().add_root(layout)
 curdoc().title = "Stocks"
 
-# bokeh serve --show C:\Users\mauri\github\Automatic-
-# Financial-Analysis\bokeh_app_test.py
+# bokeh serve --show C:\Users\mauri\github\Automatic-Financial-Analysis\bokeh_app_V3_test.py
